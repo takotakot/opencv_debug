@@ -17,19 +17,28 @@ void print_point(const cv::Point2d &pt)
 
 cv::RotatedRect RotatedRect_2f(const cv::Point2f &_point1, const cv::Point2f &_point2, const cv::Point2f &_point3)
 {
+    cv::Point2f pt1 = _point1, pt2 = _point2, pt3 = _point3;
     cv::Point2f _center = 0.5f * (_point1 + _point3);
-    cv::Vec2f vecs[2];
-    vecs[0] = cv::Vec2f(_point1 - _point2);
-    vecs[1] = cv::Vec2f(_point2 - _point3);
+    cv::Vec2f vecs[2], vec2;
+    vecs[0] = cv::Vec2f(pt1 - pt2);
+    vecs[1] = cv::Vec2f(pt2 - pt3);
+    vec2 = cv::Vec2f(pt3 - pt1);
     // print
     print_point(_point1);
     print_point(_point2);
     print_point(_point3);
-    std::cout << cv::norm(vecs[0]) << std::endl;
-    std::cout << cv::norm(vecs[1]) << std::endl;
-    std::cout << std::abs(vecs[0].dot(vecs[1])) / (cv::norm(vecs[0]) * cv::norm(vecs[1])) << std::endl;
+    std::cout << std::setprecision(15);
+    std::cout << "dot: " << vecs[0].dot(vecs[1]) << std::endl;
+    std::cout << "ddot: " << vecs[0].ddot(vecs[1]) << std::endl;
+    std::cout << "norm0: " << cv::norm(vecs[0]) << std::endl;
+    std::cout << "norm1: " << cv::norm(vecs[1]) << std::endl;
+    std::cout << "prod: " << (cv::norm(vecs[0]) * cv::norm(vecs[1])) << std::endl;
+    std::cout << std::fabs(vecs[0].ddot(vecs[1])) / (cv::norm(vecs[0]) * cv::norm(vecs[1])) << std::endl;
+
     // check that given sides are perpendicular
-    CV_Assert(std::abs(vecs[0].dot(vecs[1])) / (cv::norm(vecs[0]) * cv::norm(vecs[1])) <= FLT_EPSILON);
+//    CV_Assert(std::fabs(vecs[0].ddot(vecs[1])) / (cv::norm(vecs[0]) * cv::norm(vecs[1])) <= FLT_EPSILON);
+    CV_Assert((std::fabs(vecs[0].ddot(vecs[1])) <= FLT_EPSILON  * (cv::norm(vecs[0]) * cv::norm(vecs[1]))) || (std::fabs(vecs[0].ddot(vecs[0]) + vecs[1].ddot(vecs[1]) - vec2.ddot(vec2)) <= FLT_EPSILON * vec2.ddot(vec2)));
+    CV_Assert(std::fabs(vecs[0].ddot(vecs[1])) <= FLT_EPSILON * (cv::norm(vecs[0]) * cv::norm(vecs[1])));
 
     // wd_i stores which vector (0,1) or (1,2) will make the width
     // One of them will definitely have slope within -1 to 1
@@ -55,11 +64,15 @@ cv::RotatedRect RotatedRect_2d(const cv::Point2d &_point1, const cv::Point2d &_p
     print_point(_point1);
     print_point(_point2);
     print_point(_point3);
-    std::cout << cv::norm(vecs[0]) << std::endl;
-    std::cout << cv::norm(vecs[1]) << std::endl;
-    std::cout << std::abs(vecs[0].dot(vecs[1])) / (cv::norm(vecs[0]) * cv::norm(vecs[1])) << std::endl;
+    std::cout << std::setprecision(15);
+    std::cout << "ddot: " << vecs[0].ddot(vecs[1]) << std::endl;
+    std::cout << "norm0: " << cv::norm(vecs[0]) << std::endl;
+    std::cout << "norm1: " << cv::norm(vecs[1]) << std::endl;
+    std::cout << "prod: " << (cv::norm(vecs[0]) * cv::norm(vecs[1])) << std::endl;
+    std::cout << std::fabs(vecs[0].ddot(vecs[1])) / (cv::norm(vecs[0]) * cv::norm(vecs[1])) << std::endl;
+
     // check that given sides are perpendicular
-    CV_Assert(std::abs(vecs[0].dot(vecs[1])) / (cv::norm(vecs[0]) * cv::norm(vecs[1])) <= FLT_EPSILON);
+    CV_Assert(std::fabs(vecs[0].ddot(vecs[1])) / (cv::norm(vecs[0]) * cv::norm(vecs[1])) <= FLT_EPSILON);
 
     // wd_i stores which vector (0,1) or (1,2) will make the width
     // One of them will definitely have slope within -1 to 1
@@ -95,6 +108,8 @@ int main(int argc, char *argv[])
     p2 = p1 - 1999 * cv::Point2d(pca_points.eigenvectors.row(0));
     p3 = p2 - 1498.5295 * cv::Point2d(pca_points.eigenvectors.row(1));
 
+    RotatedRect_metrics_2f(p1, p2, p3);
+    RotatedRect_metrics_2d(p1, p2, p3);
     RotatedRect_2d(p1, p2, p3);
     RotatedRect_2f(p1, p2, p3);
     cv::RotatedRect(p1, p2, p3);
